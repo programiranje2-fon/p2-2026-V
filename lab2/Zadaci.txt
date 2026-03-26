@@ -80,5 +80,6 @@ Zadatak 7
 
 Napišite funkciju (all_even_digits) koja pronalazi cele brojeve između 100 i 400
 (uključujući i ove brojeve) gde je svaka cifra broja parna. Brojeve koji odgovaraju
-ovom kriterijumu treba prikazati kao string u kome su brojevi odvojeni zarezom.
+ovom kriterijumu treba vratiti kao povratnu vrednost funkcije i prikazati kao string
+u kome su brojevi odvojeni zarezom.
 
