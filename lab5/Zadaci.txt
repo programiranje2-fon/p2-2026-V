@@ -34,8 +34,8 @@ Kreirajte klasu `Let` sa sledećim elementima:
   vrednost atributa je "%Y-%m-%d %H:%M"
 
 * Konstruktor (__init__) koji prima dva parametra i koristi ih za inicijalizaciju atributa:
-  `broj_leta` i `vreme_poletanja`; takođe inicijalizuje atribut `putnici` koji ce predstavljati listu
-   objekata klase `Putnik` (inicijalno prazna)
+  `broj_leta` i `vreme_poletanja`; takođe inicijalizuje atribut `putnici` kao listu objekata klase `Putnik`
+  (inicijalno prazna)
 
 * Get i set metode za atribut `vreme_poletanja` (koristeći odgovarajuće dekoratore);
   obezbediti da atribut bude privatni i da bude objekat datetime klase koji se odnosi na neki budući

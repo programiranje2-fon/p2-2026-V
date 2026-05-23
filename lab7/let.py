@@ -2,7 +2,7 @@ from datetime import datetime
 from sys import stderr
 
 from lab6.kategorije_putnika import PutnikEkonomskeKlase, PutnikBiznisKlase
-from lab6.flight_enum import UslugaNaLetu
+from lab6.lab6_enums import UslugaNaLetu
 from lab6.putnik import Putnik
 
 
@@ -184,7 +184,7 @@ if __name__ == '__main__':
     bob = PutnikEkonomskeKlase("Bob Smith", "UK", "123456", 250.0, True)
     john = PutnikEkonomskeKlase("John Smith", "USA", 987656, 450, True)
     luis = PutnikBiznisKlase(ime_prezime="Luis Bouve", drzava='France', pasos="123654", cena_karte=225,
-                             usluge_na_letu=[UslugaNaLetu.OBROK, UslugaNaLetu.WIFI], COVID_bezbedan=True)
+                             usluge=[UslugaNaLetu.OBROK, UslugaNaLetu.WIFI], COVID_bezbedan=True)
 
     anna = PutnikEkonomskeKlase("Anna Smith", "Spain", "987659", 375, True)
     try:
@@ -218,7 +218,7 @@ if __name__ == '__main__':
 
     # Dodacemo putnicima usluge na letu radi provere generatorske metode
     try:
-        dodatne_usluge_bob = {UslugaNaLetu.IZBOR_SEDISTA: 20, UslugaNaLetu.OSIGURANJE_LETA: 35}
+        dodatne_usluge_bob = {UslugaNaLetu.SEDISTA: 20, UslugaNaLetu.OSIGURANJE: 35}
         bob.dodaj_izabrane_usluge(dodatne_usluge_bob)
     except ValueError as err:
         stderr.write(f"Iz dodaj_izabrane_usluge: Greska! {err}")

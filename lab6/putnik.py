@@ -1,5 +1,6 @@
-from sys import stderr
 from datetime import datetime
+from sys import stderr
+
 
 class Putnik:
 
@@ -7,17 +8,15 @@ class Putnik:
         self.ime = ime_prezime
         self.drzava = drzava
         self.pasos = pasos
-        self.cena_karte = cena_karte
         self.COVID_bezbedan = COVID_bezbedan
-        self.usluge = list()
+        self.cena_karte = cena_karte
+        self.usluge = []
 
     @property
     def pasos(self):
-        # Option 1
         # if not hasattr(self, '_Putnik__pasos'):
         #     self.__pasos = None
         # return self.__pasos
-        # Option 2: Easier to Ask for Forgiveness than Permission
         try:
             return self.__pasos
         except AttributeError:
@@ -45,46 +44,42 @@ class Putnik:
 
     @cena_karte.setter
     def cena_karte(self, value):
-        if isinstance(value, (int, float)) and value > 0:
-            self.__cena_karte = int(value)
+        if not isinstance(value, (str, float, int)):
+            stderr.write("Iz cena_karte.setter: pogresna vrednost ulaznog argumenta\n")
             return
-        if isinstance(value, str):
+        if isinstance(value, (str, float)):
             try:
                 value = int(value)
-            except ValueError:
-                stderr.write(f"Greska! Uneti string {value} se ne moze parsirati u int vrednost\n")
+            except ValueError as err:
+                stderr.write(f"Iz cena_karte.setter: {err}\n")
                 return
-            if value > 0:
-                self.__cena_karte = value
-        else:
-            stderr.write(f"Greska! Pogresan tip ulazne vrednosti ({type(value)}) => cena karte nije postavljena\n")
-
-    def prikazi_usluge(self):
-        if len(self.usluge) == 0:
-            return "nema dodatnih usluga"
-        return ', '.join([usluga.value for usluga in self.usluge])
+        if value > 0:
+            self.__cena_karte = value
 
     def __str__(self):
         putnik_str = f'Putnik {self.ime}\n\t-drzavljanstvo: {self.drzava}\n\t-broj pasosa: {self.pasos}\n'
-        putnik_str += f'\t-COVID bezbedan: {"DA" if self.COVID_bezbedan else "NE"}\n'
-        putnik_str += f"\t-cena karte: {self.cena_karte if self.cena_karte else 'karta nije placena'}\n"
-        putnik_str += "\t-usluge na letu: " + self.prikazi_usluge()
+        putnik_str += f'\t-COVID bezbedan: {"DA" if self.COVID_bezbedan else "NE"} \n'
+        putnik_str += f"\tCena karte: {self.cena_karte if self.cena_karte else 'karta jos nije placena'} \n"
+
+        if len(self.usluge) == 0:
+            putnik_str += "\t Nema dodatnih usluga \n"
+        else:
+            putnik_str += f"\tDodatne usluge: {', '.join([usluga.value for usluga in self.usluge])}"
+
         return putnik_str
 
     def __eq__(self, other):
         return isinstance(other, Putnik) and self.pasos == other.pasos and self.drzava == other.drzava
 
-
     @classmethod
     def from_string(cls, putnik_string):
         parts = [part.strip() for part in putnik_string.split(';')]
-        if len(parts) == 5:
-            name, country, passport, airfare, covid_status = parts
-            return cls(name, country, passport, airfare, covid_status)
+        if len(parts) == 4:
+            name, country, passport, covid_status = parts
+            return cls(name, country, passport, covid_status)
 
         stderr.write(f"Greska! Ulazni string nije odgovarajuceg formata -> Putnik objekat nije kreiran!\n")
         return None
-
 
     def azuriraj_COVID_bezbedan(self, tip_uverenja, datum_uverenja):
         if not isinstance(tip_uverenja, str) or tip_uverenja.lower() not in ['vakcinacija', 'negativan_test']:
@@ -106,11 +101,10 @@ class Putnik:
 
 
 if __name__ == '__main__':
-
-    bob = Putnik("Bob Smith", "UK", "123456", 250.0, True)
-    john = Putnik("John Smith", "USA", 987656, 450, True)
-    anna = Putnik("Anna Smith", "Spain", "987659", 375)
-    luis = Putnik.from_string("Luis Bouve; France; 123456; 225; True")
+    bob = Putnik("Bob Smith", "UK", "123456", True)
+    john = Putnik("John Smith", "USA", 987656, True)
+    anna = Putnik("Anna Smith", "Spain", "987659")
+    luis = Putnik.from_string("Luis Bouve; France; 123456; True")
 
     print("PUTNICI:\n")
     print(bob)
@@ -130,5 +124,5 @@ if __name__ == '__main__':
     print("Isti putnik" if bob == john else "Razliciti putnici")
     print()
     print("Provera da li su 'john' i 'johnny' reference na istog putnika")
-    johnny = Putnik("Johnny Smith", "USA", 987656, 650, False)
+    johnny = Putnik("Johnny Smith", "USA", 987656, False)
     print("Isti putnik" if john == johnny else "Razliciti putnici")
