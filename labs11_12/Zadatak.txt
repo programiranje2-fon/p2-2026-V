@@ -1,0 +1,24 @@
+Zadatak
+
+Potrebno je napisati Python program (skriptu) koji određuje koje zemlje
+su dale veliki broj sportista i sportistkinja koji se smatraju među 100
+najvećih sportistskih zvezda vremena.
+Konkretno, program bi trebalo da uradi sledeće:
+- Prikupi imena sportista i sportistkinja sa Web stranice
+  "100 Greatest Sports Stars Ever": https://ivansmith.co.uk/?page_id=475
+- Za svakog identifikovanog sportistu / sportistkinju, odredi zemlju rođenja
+  preuzimajući relevantne podatke (mesto rođenja) sa njihove Wikipedia stranice
+- Sačuva podatke o sportistima / sportistkinjama i njihovoj zemlji porekla
+  u csv fajlu (u formatu "athlete, origin")
+- Prikaže listu identifikovanih zemalja sortiranu prema broju
+  najvećih sportskih zvezda koje je dala.
+
+Napomene:
+Da bismo pristupili sadržaju Web stranica, koristićemo Web drajvere
+iz Selenium biblioteke (https://www.selenium.dev/documentation/webdriver/)
+
+Dokumentacija za Selenium WebDriver za Chrome browser je dostupna na:
+https://www.selenium.dev/documentation/webdriver/browsers/chrome/
+
+Dokumentacija za BeautifulSoup je dostupna na:
+https://www.crummy.com/software/BeautifulSoup/bs4/doc/
