@@ -3,6 +3,12 @@ LABs 11 & 12
 """
 
 from sys import stderr
+from pathlib import Path
+
+from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver import ChromeOptions
+import pandas as pd
 
 
 ORIGINS_CSV_FILE = "athletes_origin.csv"
@@ -19,8 +25,16 @@ def get_athletes_names(url):
     :param url: url of the page to scrape data from
     :return: a list of athletes' names
     """
-    pass
+    names = from_csv(Path.cwd() / NAMES_CSV_FILE)
+    if not names:
+        print(f"Imena sportista nisu raspoloziva => bice skrejpovana sa stranice {url}")
+        names = scrape_athletes_names(url)
+        to_csv(Path.cwd() / NAMES_CSV_FILE, ('name',), names)
+    else:
+        print(f"Imena sportista uspesno ucitana iz fajla {NAMES_CSV_FILE} file")
+        names = [name[0] for name in names]
 
+    return names
 
 
 def scrape_athletes_names(url):
@@ -31,8 +45,25 @@ def scrape_athletes_names(url):
     :param url: url of the page to scrape data from
     :return: a list of athletes' names
     """
-    pass
+    names = []
 
+    web_driver = get_chrome_web_driver()
+    web_driver.get(url)
+    page_content = web_driver.page_source
+    # print(page_content)
+
+    page_soup = BeautifulSoup(page_content, 'html.parser')
+    ol = page_soup.find(name='ol')
+    for li in ol.find_all(name='li'):
+        strong = li.find_next('strong')
+        if strong and strong.text:
+            names.append(strong.text.strip())
+
+    print(f"Scraping imena sportista zavrsen, pronadjeno {len(names)} (od 100 mogucih).")
+
+    web_driver.quit()
+
+    return names
 
 
 def get_chrome_web_driver():
@@ -41,17 +72,9 @@ def get_chrome_web_driver():
 
     :return: Selenium web driver for Chrome browser
     """
-    pass
-
-
-def from_csv(fpath):
-    """
-    Reads data from a csv file
-
-    :param fpath: path to the csv file with the data
-    :return: the content of the csv file as a list; None if, for any reason, reading from file was unsuccessful
-    """
-    pass
+    options = ChromeOptions()
+    options.add_argument('headless')
+    return webdriver.Chrome(options=options)
 
 
 def to_csv(fpath, header, data):
@@ -63,7 +86,30 @@ def to_csv(fpath, header, data):
     :param data: data to store; expected as a list or a tuple
     :return: nothing
     """
-    pass
+    try:
+        names_df = pd.DataFrame(data=data, columns=header)
+        names_df.to_csv(fpath, index=False)
+    except OSError as err:
+        stderr.write(f'Greska pri upisivanju podataka u csv fajl {fpath}.\nOriginalna poruka greske: {err}\n')
+
+
+
+def from_csv(fpath):
+    """
+    Reads data from a csv file
+
+    :param fpath: path to the csv file with the data
+    :return: the content of the csv file as a list; None if, for any reason, reading from file was unsuccessful
+    """
+    try:
+        names_df = pd.read_csv(Path.cwd() / NAMES_CSV_FILE)
+        # Option 1
+        # return list(names_df.to_records(index=False))
+        # Option 2
+        return [tuple(row) for _, row in names_df.iterrows()]
+    except OSError as err:
+        stderr.write(f"Greska pri upisivanju podataka u csv fajl {fpath}.\nOriginalna poruka greske: {err}\n")
+        return None
 
 
 def collect_athletes_data(athletes_names):
@@ -77,7 +123,26 @@ def collect_athletes_data(athletes_names):
     :param athletes_names: list with athlete names
     :return: list of athlete name and origin pairs
     """
-    pass
+    names_and_origins = []
+    no_country = []
+
+    wd = get_chrome_web_driver()
+
+    for name in athletes_names:
+        print(f"Pokrece se prikupljanje podataka za {name}")
+        country = retrieve_country_of_origin(name, wd)
+        if country:
+            names_and_origins.append((name, country))
+        else:
+            no_country.append(name)
+
+    wd.quit()
+
+    to_csv(Path.cwd() / ORIGINS_CSV_FILE, ('name', 'country'), names_and_origins)
+
+    print(f"Zemlja porekla nije pronadjena za {len(no_country)} sportista, konkretno: ", ', '.join(no_country))
+
+    return names_and_origins
 
 
 def retrieve_country_of_origin(name, web_driver):
@@ -90,7 +155,15 @@ def retrieve_country_of_origin(name, web_driver):
     :param web_driver: Selenium web driver to be used for scraping
     :return: country of birth (string) or None
     """
-    pass
+
+    wiki_url = f'https://en.wikipedia.org/wiki/{name.replace(" ", "_")}'
+    web_driver.get(wiki_url)
+    page_content = web_driver.page_source
+
+    wiki_soup = BeautifulSoup(page_content, 'html.parser')
+
+
+
 
 
 def create_country_labels_mapping():
@@ -130,6 +203,9 @@ if __name__ == '__main__':
     top_athletes_url = 'https://ivansmith.co.uk/?page_id=475'
     try:
         athletes_names = get_athletes_names(top_athletes_url)
+        # if athletes_names:
+        #     for i, name in enumerate(athletes_names):
+        #         print(f"{i+1}. {name}")
         athletes_data = collect_athletes_data(athletes_names)
         most_represented_countries(athletes_data)
     except RuntimeError as err:
