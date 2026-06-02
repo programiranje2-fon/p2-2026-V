@@ -102,7 +102,7 @@ def from_csv(fpath):
     :return: the content of the csv file as a list; None if, for any reason, reading from file was unsuccessful
     """
     try:
-        names_df = pd.read_csv(Path.cwd() / NAMES_CSV_FILE)
+        names_df = pd.read_csv(fpath)
         # Option 1
         # return list(names_df.to_records(index=False))
         # Option 2
