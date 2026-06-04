@@ -161,9 +161,35 @@ def retrieve_country_of_origin(name, web_driver):
     page_content = web_driver.page_source
 
     wiki_soup = BeautifulSoup(page_content, 'html.parser')
+    info_box = wiki_soup.find(lambda elem: elem.name=='table' and
+                                           elem.has_attr('class') and
+                                           all(val in elem.attrs['class'] for val in ['infobox', 'vcard']))
+                                           # 'infobox' in elem.attrs['class'] and 'vcard' in elem.attrs['class'])
+    if not info_box:
+        disambig_page= wiki_soup.find(lambda elem: elem.name=='div' and elem.has_attr('id') and elem.attrs['id']=='disambigbox')
+        if disambig_page:
+            print(f"Nema jedinstvene wikipedia stranice za URL {wiki_url} => ne mozemo pristupiti podatku o drzavi rodjenja")
+        else:
+            print(f"Wikipedia stranica za {name} ne sadrzi infobox => ne mozemo pristupiti podatku o drzavi rodjenja")
+        return None
 
+    th = info_box.find_next(lambda elem: elem.name=='th' and elem.text and elem.text.lower() in ['born', 'place of birth'])
+    if th:
+        td = th.find_next_sibling(lambda elem: elem.name=='td' and elem.text)
+        if td:
+            return extract_country(td.text)
+    else:
+        td = info_box.find_next(lambda elem: elem.name=='td' and elem.text and elem.text.lower().startswith('born'))
+        if td:
+            return extract_country(td.text)
 
+    return None
 
+def extract_country(born_text):
+    _, country = born_text.rsplit(',', maxsplit=1)
+    if '[' in country:
+        country, _ = country.rsplit('[', maxsplit=1)
+    return country.strip()
 
 
 def create_country_labels_mapping():
@@ -195,7 +221,27 @@ def most_represented_countries(athletes_list):
     :param athletes_list: list of athlete name and origin pairs
     :return: nothing
     """
-    pass
+
+    mapping_dict = create_country_labels_mapping()
+
+    final_list = []
+
+    for name, origin in athletes_list:
+        main_lbl_found = False
+        for main_lbl, alternatives in mapping_dict.items():
+            if origin in alternatives:
+                final_list.append((name, main_lbl))
+                main_lbl_found = True
+                break
+        if not main_lbl_found:
+            final_list.append((name, origin))
+
+    from collections import Counter
+    country_counts = Counter([country for _, country in final_list])
+
+    print("Broj top sportista po zemljama porekla:")
+    for country, count in sorted(country_counts.items(), key=lambda item: item[1], reverse=True):
+        print(f"{country}: {count}")
 
 
 if __name__ == '__main__':
@@ -206,7 +252,8 @@ if __name__ == '__main__':
         # if athletes_names:
         #     for i, name in enumerate(athletes_names):
         #         print(f"{i+1}. {name}")
-        athletes_data = collect_athletes_data(athletes_names)
+        # athletes_data = collect_athletes_data(athletes_names)
+        athletes_data = from_csv(Path.cwd() / ORIGINS_CSV_FILE)
         most_represented_countries(athletes_data)
     except RuntimeError as err:
         stderr.write(f"Terminating the program due to the following runtime error:\n{err}")
